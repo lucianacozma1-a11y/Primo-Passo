@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -410,8 +411,6 @@ fun HabitsTab(prefs: Prefs, version: Int, onChanged: () -> Unit) {
     }
 }
 
-@Composable
-private fun key(vararg keys: Any?, content: @Composable () -> Unit) = androidx.compose.runtime.key(*keys) { content() }
 
 // =============================== PENSIERI CHE BLOCCANO ===============================
 
