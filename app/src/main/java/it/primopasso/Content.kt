@@ -76,7 +76,7 @@ val blockProfiles = listOf(
         "Sai cosa fare e saresti capace di farlo. Quello che manca è la spinta dei primi secondi: il compito sembra un blocco unico, troppo grande per entrarci.",
         listOf("Passi così piccoli da sembrare ridicoli", "Un timer che parte per te", "Fare accanto a qualcuno"),
         "Non pensare al compito intero: solo al primo gesto.",
-        listOf(2, 3, 4, 10, 14), listOf("k_ridicolo", "k_conto", "k_due")
+        listOf(1, 10, 11, 13), listOf("k_ridicolo", "k_conto", "k_due")
     ),
     BlockProfile(
         "rimugino", "La mente che pesa ogni scelta", "∞",
@@ -84,7 +84,7 @@ val blockProfiles = listOf(
         "La tua mente vuole fare bene, così valuta ogni opzione e ogni rischio. Il pensiero gira in tondo e intanto il tempo passa. Non è pigrizia: è troppa cura.",
         listOf("Decidere in 10 secondi", "La bozza volutamente brutta", "\"Fatto\" prima di \"perfetto\""),
         "Non serve la scelta perfetta: va bene la prima ragionevole.",
-        listOf(6, 7, 8, 21), listOf("k_dieci", "k_bozza", "k_svuota")
+        listOf(16, 17, 19, 21), listOf("k_dieci", "k_bozza", "k_svuota")
     ),
     BlockProfile(
         "scadenza", "Il motore dell'ultimo minuto", "⏳",
@@ -92,7 +92,7 @@ val blockProfiles = listOf(
         "Sotto pressione funzioni benissimo, ma l'attesa ti costa ansia, corse e notti corte. L'urgenza è il tuo carburante: possiamo crearne di più gentili, molto prima della scadenza.",
         listOf("Mini-scadenze vicine e dichiarate", "Un timer ben visibile", "Cinque minuti oggi, non tutto domani"),
         "Il timer è la tua urgenza gentile: usalo come una piccola scadenza.",
-        listOf(9, 4, 15, 24), listOf("k_minisc", "k_due", "k_terreno")
+        listOf(3, 11, 12, 20), listOf("k_minisc", "k_due", "k_terreno")
     ),
     BlockProfile(
         "disperdo", "L'attenzione che cerca novità", "✺",
@@ -100,7 +100,7 @@ val blockProfiles = listOf(
         "Parti con entusiasmo, poi qualcosa di più interessante ti chiama e ti ritrovi altrove. Non è mancanza di volontà: la tua mente cerca stimoli, e si può lavorare con lei invece che contro.",
         listOf("Una cosa sola sullo schermo", "Una ricompensa subito dopo", "Blocchi brevi e chiari"),
         "Per questi minuti, una cosa sola: chiudi il resto.",
-        listOf(11, 12, 13, 27), listOf("k_unasola", "k_ricompensa", "k_svuota")
+        listOf(22, 12, 14, 5), listOf("k_unasola", "k_ricompensa", "k_svuota")
     )
 )
 
@@ -242,12 +242,12 @@ fun personalKitIds(a: Map<String, Set<String>>, p: BlockProfile?): List<String> 
 fun personalLessonIds(a: Map<String, Set<String>>, p: BlockProfile?): List<Int> {
     val extra = mutableListOf<Int>()
     val voce = a["voce"] ?: emptySet()
-    if ("dura" in voce || "pigra" in voce) extra += listOf(1, 21, 20)
-    if (a["no"]?.contains("spesso") == true) extra += listOf(17, 18)
-    if (a["invece"]?.contains("telefono") == true) extra += 23
-    if (a["aiuta"]?.contains("compagnia") == true) extra += 10
-    if (a["aiuta"]?.contains("musica") == true) extra += 27
-    if (a["stanchezza"]?.contains("spesso") == true) extra += listOf(16, 26)
+    if ("dura" in voce || "pigra" in voce) extra += listOf(2, 23, 16)
+    if (a["no"]?.contains("spesso") == true) extra += 9
+    if (a["invece"]?.contains("telefono") == true) extra += 22
+    if (a["invece"]?.contains("penso") == true) extra += 18
+    if (a["emozioni"]?.contains("ansia") == true) extra += listOf(13, 15)
+    if (a["stanchezza"]?.contains("spesso") == true) extra += 3
     return (extra + (p?.lessonIds ?: emptyList())).distinct().take(7)
 }
 
@@ -278,105 +278,6 @@ fun computeProfile(answers: Map<String, Set<String>>): String {
     val top = counts.filterValues { it == max }.keys
     return if (first != null && first in top) first else top.first()
 }
-
-// ---------------- Lezioni del mattino ----------------
-
-data class Lesson(val id: Int, val title: String, val body: String, val tryToday: String)
-
-val lessons = listOf(
-    Lesson(1, "Non sei pigra",
-        "Rimandare non è pigrizia. È il modo in cui il cervello evita una sensazione spiacevole: noia, paura di sbagliare, confusione, stanchezza.\n\nIn pratica non rimandi il compito: rimandi l'emozione che il compito ti porta. Saperlo cambia tutto, perché smetti di combattere contro te stessa.",
-        "Pensa a una cosa che rimandi e chiediti: quale sensazione sto evitando?"),
-    Lesson(2, "Il compito è troppo grande",
-        "Il cervello non sa iniziare \"sistemare casa\". Sa iniziare \"metti tre piatti nel lavandino\".\n\nPiù il primo passo è concreto e visibile, meno resistenza incontra. Un buon primo passo si può fotografare.",
-        "Riscrivi una cosa che rimandi come un'azione fisica di meno di due minuti."),
-    Lesson(3, "Il passo ridicolo",
-        "Se il primo passo ti sembra ancora pesante, rimpiccioliscilo finché ti fa quasi ridere: \"apri il computer\", \"prendi la penna\", \"metti le scarpe\".\n\nIl punto non è finire. Il punto è partire: una volta in movimento, continuare costa molto meno.",
-        "Fai un passo ridicolo adesso, su qualcosa che rimandi."),
-    Lesson(4, "Cinque minuti, e basta",
-        "Promettiti solo cinque minuti, con il permesso sincero di fermarti dopo.\n\nSpesso, una volta partita, continui. E se ti fermi, hai comunque iniziato: la prossima volta riprendere sarà più facile.",
-        "Usa \"Inizia ora\" con 5 minuti su una cosa che rimandi."),
-    Lesson(5, "Togli attrito",
-        "Rendi facile ciò che vuoi fare e un po' più difficile ciò che ti distrae.\n\nScarpe da ginnastica vicino alla porta, il file già aperto, il telefono in un'altra stanza. Piccoli spostamenti, grandi differenze.",
-        "Togli un ostacolo dalla cosa che rimandi, anche solo prepararne gli strumenti."),
-    Lesson(6, "Decidi in dieci secondi",
-        "Per le scelte piccole, la differenza tra le opzioni è minima, mentre il costo di pensarci è grande.\n\nDarti un tempo breve per decidere libera energia per fare.",
-        "Per una scelta di oggi, conta fino a dieci e scegli. Senza tornare indietro."),
-    Lesson(7, "La bozza brutta",
-        "Concediti una prima versione volutamente imperfetta. Una mail scritta male, un elenco disordinato, un primo schizzo.\n\nSi può migliorare solo ciò che esiste. La bozza brutta toglie al perfezionismo il suo potere.",
-        "Scrivi la \"versione brutta\" di qualcosa in cinque minuti."),
-    Lesson(8, "Fatto è meglio di perfetto",
-        "Il perfezionismo spesso è paura travestita da standard alto.\n\nPer molte cose, il \"abbastanza buono\" è esattamente ciò che serve. Tieni la cura per le poche cose che la meritano davvero.",
-        "Scegli una cosa di oggi da fare al 70%, e consegnala così."),
-    Lesson(9, "Mini-scadenze",
-        "Se l'urgenza ti accende, creane di vicine e gentili: \"entro le 11 mando la mail\".\n\nFunziona ancora meglio se qualcuno lo sa: dichiararlo rende la scadenza reale.",
-        "Dai a una cosa una scadenza entro oggi e dilla a qualcuno."),
-    Lesson(10, "Fare in compagnia",
-        "Lavorare accanto a qualcuno, anche in silenzio o in videochiamata, aiuta molti cervelli a restare sul compito.\n\nNon serve che ti aiuti: basta la sua presenza.",
-        "Proponi a qualcuno venti minuti in cui ognuna fa le sue cose."),
-    Lesson(11, "Una cosa sola",
-        "Ogni cambio di attività costa energia e ti fa ripartire da zero.\n\nUna finestra, una scheda, un compito. Per pochi minuti, il resto può aspettare.",
-        "Chiudi tutto tranne ciò che ti serve, per dieci minuti."),
-    Lesson(12, "Ricompensa subito",
-        "Il cervello impara da ciò che arriva subito, non da un premio tra un mese.\n\nAbbina un piccolo piacere a ogni inizio: una canzone, un tè, cinque minuti di sole.",
-        "Scegli una ricompensa e concedila subito dopo il prossimo inizio."),
-    Lesson(13, "La lista del dopo",
-        "Quando arriva un pensiero non urgente mentre lavori, non inseguirlo: scrivilo nella lista del dopo.\n\nLa mente si calma quando sa che l'idea non andrà persa.",
-        "Tieni oggi un foglio o una nota \"dopo\" vicino a te."),
-    Lesson(14, "Il momento giusto non arriva",
-        "Aspettare di sentirsi pronte rimanda all'infinito.\n\nLa motivazione, spesso, arriva dopo aver iniziato, non prima. È l'azione che crea la voglia, non il contrario.",
-        "Inizia una cosa senza sentirti pronta. Solo due minuti."),
-    Lesson(15, "Quando funzioni meglio",
-        "Ognuno ha momenti della giornata in cui la mente è più lucida.\n\nMetti le cose difficili nei tuoi momenti buoni e quelle facili nei momenti stanchi.",
-        "Osserva oggi in che momento ti senti più presente."),
-    Lesson(16, "Energia, non solo tempo",
-        "Un'ora da stanca non vale un'ora da riposata.\n\nOrganizzare la giornata guardando l'energia, e non solo l'orologio, evita di combattere contro te stessa.",
-        "Per una cosa di domani, scegli l'orario in cui avrai più energia."),
-    Lesson(17, "Dire di no",
-        "Ogni sì a qualcosa è un no a qualcos'altro, spesso a te stessa e alle tue cose.\n\nUn no gentile protegge il tempo per ciò che conta.",
-        "Prepara una frase: \"Mi piacerebbe, ma questa settimana non riesco.\""),
-    Lesson(18, "Il no che prende tempo",
-        "Non serve rispondere subito a ogni richiesta.\n\n\"Ci penso e ti dico domani\" ti dà lo spazio per scegliere invece di reagire, e per non riempire la settimana senza accorgertene.",
-        "Alla prossima richiesta, rispondi: \"Ti faccio sapere\"."),
-    Lesson(19, "Un'ora per te",
-        "Se non lo metti in agenda, il tempo per te sparisce per primo.\n\nTrattalo come un appuntamento importante, perché lo è.",
-        "Segna un'ora solo tua in questa settimana."),
-    Lesson(20, "Non sei la tua lista",
-        "Il tuo valore non dipende da quante cose spunti.\n\nSei degna di riposo anche nei giorni in cui non hai concluso nulla. Paradossalmente, sentirlo rende più facile iniziare.",
-        "Dì a te stessa una cosa che apprezzi di te che non riguarda il fare."),
-    Lesson(21, "Parlati come a un'amica",
-        "La voce critica non ti spinge a fare: ti blocca e ti fa vergognare.\n\nLa gentilezza, invece, ti fa ripartire prima. Non è indulgenza: è strategia.",
-        "Quando ti critichi oggi, chiediti: cosa direi a un'amica?"),
-    Lesson(22, "Dopo uno stop si riparte",
-        "Saltare un giorno non cancella nulla di ciò che hai costruito.\n\nConta tornare, non non fermarsi mai. Qui non ci sono serie da perdere.",
-        "Riprendi una cosa interrotta, anche solo per due minuti."),
-    Lesson(23, "Lo scroll non riposa",
-        "Prendere il telefono \"un attimo\" sembra una pausa, ma raramente riposa: spesso stanca di più.\n\nScegli prima con cosa sostituirlo: alzarti, bere, guardare fuori.",
-        "Quando prendi il telefono senza motivo, fai invece una pausa vera di un minuto."),
-    Lesson(24, "Prepara il terreno la sera",
-        "Prepara stasera ciò che serve per iniziare domani: il file aperto, la borsa pronta, la lista delle tre cose.\n\nAl mattino il primo passo sarà già fatto.",
-        "Prima di dormire, prepara una cosa per domani."),
-    Lesson(25, "Le tre cose del giorno",
-        "Una lista di quindici cose paralizza. Scegline tre: le più importanti.\n\nIl resto è un bonus. Finire le tre ti lascia la sensazione di aver fatto, invece di quella di non aver finito.",
-        "Scrivi solo tre cose per oggi."),
-    Lesson(26, "Il corpo prima della mente",
-        "A volte il blocco è nel corpo: stanchezza, fame, sete, tensione.\n\nPrima di forzare la testa, prova a sistemare il corpo.",
-        "Prima di iniziare, alzati, bevi un bicchiere d'acqua e fai cinque respiri lenti."),
-    Lesson(27, "Un suono per partire",
-        "Musica senza parole o un suono costante aiutano molte menti a concentrarsi.\n\nUsato sempre allo stesso modo, diventa un segnale: quando parte, si inizia.",
-        "Scegli una \"musica per iniziare\" e usala ogni volta."),
-    Lesson(28, "Celebra i piccoli inizi",
-        "Notare ciò che hai fatto rinforza l'abitudine molto più che rimproverarti per ciò che manca.\n\nOgni inizio conta, anche quello di cinque minuti.",
-        "Stasera scrivi tre cose che hai iniziato oggi."),
-    Lesson(29, "Capire il perché",
-        "Nel tuo registro vedi quali motivi tornano più spesso quando rimandi.\n\nQuello è il punto su cui lavorare: se è \"troppo grande\", rimpicciolisci; se è \"paura di sbagliare\", bozza brutta.",
-        "Apri il registro e guarda il motivo più frequente."),
-    Lesson(30, "Il tuo metodo",
-        "Ora sai cosa funziona per te. Non serve usare tutto: bastano tre tecniche che ti aiutano davvero.\n\nSono il tuo kit personale, da tirare fuori ogni volta che ti blocchi.",
-        "Scrivi le tue tre tecniche preferite e tienile a portata di mano.")
-)
-
-fun lessonById(id: Int) = lessons.firstOrNull { it.id == id }
 
 // ---------------- Kit per partire ----------------
 

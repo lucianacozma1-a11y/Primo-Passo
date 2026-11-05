@@ -21,7 +21,11 @@ data class StartEntry(
     val hour: Int get() = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).hour
 }
 
-data class WeeklyCheckin(val time: Long, val mood: Int, val wentWell: String, val lighten: String, val note: String, val target: Int, val intention: String)
+data class WeeklyCheckin(
+    val time: Long, val mood: Int, val wentWell: String, val lighten: String, val note: String,
+    val target: Int, val intention: String, val scores: Map<String, Int> = emptyMap()
+)
+data class WorksheetEntry(val time: Long, val worksheetId: String, val answers: Map<String, String>)
 data class Habit(val id: Long, val text: String)
 data class ThoughtEntry(val time: Long, val thought: String, val types: List<String>, val reframe: String, val step: String)
 
@@ -157,13 +161,18 @@ class Prefs(context: Context) {
         val a = jsonList("checkins")
         return (0 until a.length()).map {
             val o = a.getJSONObject(it)
-            WeeklyCheckin(o.optLong("t"), o.optInt("m"), o.optString("w"), o.optString("l"), o.optString("n"), o.optInt("g"), o.optString("i"))
+            val sc = o.optJSONObject("s")
+            val scores = HashMap<String, Int>()
+            sc?.keys()?.forEach { k -> scores[k] = sc.optInt(k) }
+            WeeklyCheckin(o.optLong("t"), o.optInt("m"), o.optString("w"), o.optString("l"), o.optString("n"), o.optInt("g"), o.optString("i"), scores)
         }.sortedByDescending { it.time }
     }
 
     fun addCheckin(c: WeeklyCheckin) {
         val a = jsonList("checkins")
-        a.put(JSONObject().put("t", c.time).put("m", c.mood).put("w", c.wentWell).put("l", c.lighten).put("n", c.note).put("g", c.target).put("i", c.intention))
+        val sc = JSONObject()
+        c.scores.forEach { (k, v) -> sc.put(k, v) }
+        a.put(JSONObject().put("t", c.time).put("m", c.mood).put("w", c.wentWell).put("l", c.lighten).put("n", c.note).put("g", c.target).put("i", c.intention).put("s", sc))
         sp.edit().putString("checkins", a.toString()).putLong("last_checkin_day", today()).apply()
         weeklyTarget = c.target
         weeklyIntention = c.intention
@@ -179,6 +188,29 @@ class Prefs(context: Context) {
     fun checkinDue(): Boolean {
         val last = sp.getLong("last_checkin_day", -1L)
         return if (last < 0) today() - installDay >= 6 else today() - last >= 7
+    }
+
+    // ---- schede di lavoro ----
+    fun worksheetEntries(): List<WorksheetEntry> {
+        val a = jsonList("worksheets")
+        return (0 until a.length()).map {
+            val o = a.getJSONObject(it)
+            val ans = o.optJSONObject("a") ?: JSONObject()
+            val m = LinkedHashMap<String, String>()
+            ans.keys().forEach { k -> m[k] = ans.optString(k) }
+            WorksheetEntry(o.optLong("t"), o.optString("w"), m)
+        }.sortedByDescending { it.time }
+    }
+
+    fun saveWorksheet(e: WorksheetEntry) {
+        val old = worksheetEntries().filter { it.time != e.time }
+        val a = JSONArray()
+        (old + e).forEach { w ->
+            val ans = JSONObject()
+            w.answers.forEach { (k, v) -> ans.put(k, v) }
+            a.put(JSONObject().put("t", w.time).put("w", w.worksheetId).put("a", ans))
+        }
+        sp.edit().putString("worksheets", a.toString()).apply()
     }
 
     // ---- piccole abitudini ----

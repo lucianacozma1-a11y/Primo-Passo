@@ -62,7 +62,7 @@ private fun LessonCard(prefs: Prefs, version: Int, onLesson: (Int) -> Unit) {
     val todayId = remember(version) { prefs.lessonTodayId() }
     when {
         next == null -> SoftCard(onClick = { onLesson(1) }) {
-            Text("Hai completato tutte le 30 lezioni 🌼", color = Plum, fontFamily = Serif, fontSize = 20.sp)
+            Text("Hai completato tutto il percorso 🌿", color = Plum, fontFamily = Serif, fontSize = 20.sp)
             Body("Puoi rileggerle quando vuoi.", size = 13)
         }
         doneToday -> SoftCard(onClick = { lessonById(todayId)?.let { onLesson(it.id) } }) {
@@ -80,7 +80,7 @@ private fun LessonCard(prefs: Prefs, version: Int, onLesson: (Int) -> Unit) {
             )
         }
         else -> SoftCard(tint = lerpColor(Color.White, Rose, 0.18f), onClick = { onLesson(next.id) }) {
-            Overline("Lezione ${next.id} di ${lessons.size} · 5 minuti")
+            Overline("Modulo ${next.module} · lezione ${next.id} di ${lessons.size}")
             Spacer(Modifier.height(6.dp))
             Text(next.title, color = Plum, fontFamily = Serif, fontSize = 22.sp)
             Spacer(Modifier.height(4.dp))
@@ -479,6 +479,8 @@ fun LogTab(prefs: Prefs, version: Int, onStart: () -> Unit) {
                 }
             }
         }
+
+        ThermometerTrend(prefs, version)
 
         SectionTitle("Gli ultimi inizi")
         log.take(15).forEach { e ->

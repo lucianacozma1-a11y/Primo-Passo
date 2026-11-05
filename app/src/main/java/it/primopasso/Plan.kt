@@ -134,15 +134,15 @@ fun PlanScreen(prefs: Prefs, buttonLabel: String, onBack: (() -> Unit)?, onDone:
     val a = remember { prefs.quizAnswers() }
     val p = profileById(prefs.blockProfile)
     val kit = personalKitIds(a, p).mapNotNull { kitById(it)?.title }
-    val lessonsForMe = personalLessonIds(a, p)
     val areas = (a["aree"] ?: emptySet()).mapNotNull { id -> startCategories.firstOrNull { it.id == id }?.label?.lowercase() }
     val items = listOf(
-        "Una lezione di 5 minuti ogni mattina" to "Alle ${formatTime(prefs.morningMinutes)}, da leggere o ascoltare. ${lessonsForMe.size} scelte per te, anche su fiducia e insicurezza.",
+        "Un percorso cognitivo-comportamentale in 8 moduli" to "24 lezioni da 5 minuti, una al mattino alle ${formatTime(prefs.morningMinutes)}, da leggere o ascoltare. Si parte da quelle scelte per te.",
+        "14 schede di lavoro" to "Il tuo ciclo, analisi A-B-C, registro dei pensieri, esperimenti comportamentali, piano se-allora, scala del disagio e altre: guidate passo passo.",
         "Micro-inizi da ${prefs.preferredMinutes} minuti" to (if (areas.isEmpty()) "Per tutto ciò che rimandi, un primo passo minuscolo e un timer gentile." else "Per ${areas.joinToString(", ")}: un primo passo minuscolo e un timer gentile."),
         "Il tuo kit personale" to kit.joinToString(" · "),
-        "Un check-in ogni settimana" to "Per vedere i progressi, alleggerire ciò che pesa e scegliere l'obiettivo successivo.",
+        "Un check-in ogni settimana" to "Con il tuo termometro: quanto rimandi, quanto disagio, quanta autocritica, quanto ti senti capace. Per vedere i progressi nel tempo.",
         "Obiettivi e piccole abitudini" to "Senza serie da perdere: saltare un giorno non rompe nulla.",
-        "Pensieri che bloccano" to "Uno strumento ispirato alle tecniche cognitivo-comportamentali per riformulare i pensieri che ti fermano.",
+
         "Una compagna di inizio" to "Condividi la tua intenzione con un'amica: alleate, non giudici."
     )
     val content: @Composable () -> Unit = {
@@ -198,6 +198,7 @@ fun CheckinFlow(prefs: Prefs, onClose: () -> Unit) {
     var note by remember { mutableStateOf("") }
     var target by remember { mutableIntStateOf(if (prefs.weeklyTarget > 0) prefs.weeklyTarget else 5) }
     var intention by remember { mutableStateOf(prefs.weeklyIntention) }
+    var scores by remember { mutableStateOf(thermometer.associate { it.first to 5 }) }
     val since = LocalDate.now().toEpochDay() - 6
     val week = remember { prefs.startLog().filter { it.epochDay >= since } }
     val habitsDone = remember { prefs.habits().sumOf { h -> (0..6).count { prefs.habitDone(h.id, since + it) } } }
@@ -234,6 +235,17 @@ fun CheckinFlow(prefs: Prefs, onClose: () -> Unit) {
                     }
                 }
                 Spacer(Modifier.height(28.dp))
+                PrimaryButton("Continua", Modifier.fillMaxWidth()) { stage = 10 }
+            }
+            10 -> {
+                Display("Il tuo termometro", 28)
+                Spacer(Modifier.height(6.dp))
+                Body("Pensa agli ultimi sette giorni. Settimana dopo settimana vedrai come cambia.", size = 14)
+                thermometer.forEach { (k, label) ->
+                    SectionTitle(label)
+                    ScaleInput(scores[k] ?: 5, "per niente", "moltissimo") { v -> scores = scores + (k to v) }
+                }
+                Spacer(Modifier.height(26.dp))
                 PrimaryButton("Continua", Modifier.fillMaxWidth()) { stage = 1 }
             }
             1 -> {
@@ -279,7 +291,7 @@ fun CheckinFlow(prefs: Prefs, onClose: () -> Unit) {
                 Spacer(Modifier.height(26.dp))
                 PrimaryButton("Salva il check-in", Modifier.fillMaxWidth()) {
                     prefs.addCheckin(
-                        WeeklyCheckin(System.currentTimeMillis(), mood, well.joinToString(", "), lighten.joinToString(", "), note, target, intention)
+                        WeeklyCheckin(System.currentTimeMillis(), mood, well.joinToString(", "), lighten.joinToString(", "), note, target, intention, scores)
                     )
                     stage = 4
                 }

@@ -221,7 +221,7 @@ fun Onboarding(prefs: Prefs, onRequestNotifications: () -> Unit, onFinish: () ->
             Display("Un passo alla volta", 30, align = TextAlign.Center)
             Spacer(Modifier.height(12.dp))
             Body(
-                "Non serve motivazione e non serve forza di volontà. Serve un primo passo, così piccolo da non fare paura. Qui lo troviamo insieme.",
+                "Non serve motivazione e non serve forza di volontà. Serve un primo passo, così piccolo da non fare paura. Un percorso basato sui principi della terapia cognitivo-comportamentale, per smettere di rimandare con gentilezza.",
                 Plum, 16, TextAlign.Center
             )
             Spacer(Modifier.height(26.dp))

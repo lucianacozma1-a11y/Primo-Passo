@@ -61,6 +61,7 @@ sealed class Route {
     object Plan : Route()
     object Checkin : Route()
     object Thought : Route()
+    data class Sheet(val id: String, val entryTime: Long? = null) : Route()
     data class ReadLesson(val id: Int) : Route()
     data class Kit(val id: String) : Route()
     object Profile : Route()
@@ -124,7 +125,8 @@ class MainActivity : ComponentActivity() {
                 "profile" -> Route.Profile
                 "plan" -> Route.Plan
                 "checkin" -> Route.Checkin
-                "thought" -> Route.Thought
+                "thought" -> Route.Sheet("pensieri")
+                "sheet" -> Route.Sheet(intent.getStringExtra("sheet") ?: "ciclo")
                 "kit" -> Route.Kit(intent.getStringExtra("kit") ?: "k_ridicolo")
                 else -> null
             }
@@ -139,10 +141,10 @@ private data class TabItem(val label: String, val icon: ImageVector)
 private val tabItems = listOf(
     TabItem("Oggi", Icons.Filled.Home),
     TabItem("Inizia", Icons.Filled.PlayArrow),
-    TabItem("Lezioni", Icons.Filled.DateRange),
+    TabItem("Percorso", Icons.Filled.DateRange),
+    TabItem("Strumenti", Icons.Filled.Face),
     TabItem("Kit", Icons.Filled.Build),
     TabItem("Abitudini", Icons.Filled.CheckCircle),
-    TabItem("Pensieri", Icons.Filled.Face),
     TabItem("Registro", Icons.AutoMirrored.Filled.List)
 )
 
@@ -200,7 +202,7 @@ fun App(prefs: Prefs, launch: LaunchRequest?, onLaunchHandled: () -> Unit, reque
             }
             is Route.ReadLesson -> {
                 val l = lessonById(top.id)
-                if (l == null) pop() else LessonScreen(prefs, l, onDone = { pop() }, onTry = { replaceTop(Route.MicroStart()) })
+                if (l == null) pop() else LessonScreen(prefs, l, onDone = { pop() }, onTry = { replaceTop(Route.MicroStart()) }, onWorksheet = { replaceTop(Route.Sheet(it)) })
             }
             is Route.Kit -> {
                 val k = kitById(top.id)
@@ -211,6 +213,11 @@ fun App(prefs: Prefs, launch: LaunchRequest?, onLaunchHandled: () -> Unit, reque
             Route.Plan -> PlanScreen(prefs, buttonLabel = "Fatto", onBack = { pop() }) { pop() }
             Route.Checkin -> CheckinFlow(prefs, onClose = { pop() })
             Route.Thought -> ThoughtFlow(prefs, onClose = { pop() }, onStart = { st -> replaceTop(Route.MicroStart(step = st)) })
+            is Route.Sheet -> {
+                val ws = worksheetById(top.id)
+                val entry = top.entryTime?.let { t -> prefs.worksheetEntries().firstOrNull { it.time == t } }
+                if (ws == null) pop() else WorksheetFlow(prefs, ws, entry, onClose = { pop() }, onStart = { st -> replaceTop(Route.MicroStart(step = st)) })
+            }
             Route.Settings -> SettingsScreen(prefs, onBack = { pop() }, onChanged = { version++ }, onRequestNotifications = requestNotifications)
         }
         return
@@ -248,10 +255,13 @@ fun App(prefs: Prefs, launch: LaunchRequest?, onLaunchHandled: () -> Unit, reque
                         onKit = { push(Route.Kit(it)) },
                         onChanged = { version++ }
                     )
-                    2 -> LessonsTab(prefs, version, onLesson = { push(Route.ReadLesson(it)) })
-                    3 -> KitTab(prefs, version, onKit = { push(Route.Kit(it)) })
-                    4 -> HabitsTab(prefs, version, onChanged = { version++ })
-                    5 -> ThoughtsTab(prefs, version, onNew = { push(Route.Thought) })
+                    2 -> ProgramTab(prefs, version, onLesson = { push(Route.ReadLesson(it)) })
+                    3 -> ToolsTab(prefs, version, onOpen = { push(Route.Sheet(it)) }, onEntry = { t ->
+                        val e = prefs.worksheetEntries().firstOrNull { it.time == t }
+                        if (e != null) push(Route.Sheet(e.worksheetId, t))
+                    })
+                    4 -> KitTab(prefs, version, onKit = { push(Route.Kit(it)) })
+                    5 -> HabitsTab(prefs, version, onChanged = { version++ })
                     else -> LogTab(prefs, version, onStart = { push(Route.MicroStart()) })
                 }
             }

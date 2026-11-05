@@ -309,7 +309,7 @@ fun KitFlow(exercise: Exercise, onClose: () -> Unit) {
 // =============================== LEZIONE ===============================
 
 @Composable
-fun LessonScreen(prefs: Prefs, lesson: Lesson, onDone: () -> Unit, onTry: () -> Unit) {
+fun LessonScreen(prefs: Prefs, lesson: Lesson, onDone: () -> Unit, onTry: () -> Unit, onWorksheet: (String) -> Unit) {
     val context = LocalContext.current
     val wasDone = remember { lesson.id in prefs.lessonsDone() }
     val speaker = remember { Speaker(context) }
@@ -317,7 +317,9 @@ fun LessonScreen(prefs: Prefs, lesson: Lesson, onDone: () -> Unit, onTry: () -> 
     var noVoice by remember { mutableStateOf(false) }
     DisposableEffect(Unit) { onDispose { speaker.shutdown() } }
     PageColumn(onBack = onDone) {
-        Overline("Lezione ${lesson.id} di ${lessons.size} · 5 minuti")
+        Overline("Modulo ${lesson.module} · ${moduleById(lesson.module)?.title ?: ""}")
+        Spacer(Modifier.height(4.dp))
+        Text("Lezione ${lesson.id} di ${lessons.size} · 5 minuti", color = PlumFaint, fontSize = 12.sp)
         Spacer(Modifier.height(8.dp))
         Display(lesson.title, 30)
         Spacer(Modifier.height(14.dp))
@@ -332,7 +334,7 @@ fun LessonScreen(prefs: Prefs, lesson: Lesson, onDone: () -> Unit, onTry: () -> 
                     } else {
                         val ok = speaker.speak(
                             listOf("Lezione ${lesson.id}. ${lesson.title}.") + lesson.body.split("\n\n") +
-                                listOf("Il micro-inizio di oggi. ${lesson.tryToday}")
+                                listOf("Il concetto chiave. ${lesson.key}", "Per oggi. ${lesson.tryToday}")
                         ) { playing = false }
                         playing = ok
                         noVoice = !ok || !speaker.italian
@@ -355,16 +357,33 @@ fun LessonScreen(prefs: Prefs, lesson: Lesson, onDone: () -> Unit, onTry: () -> 
             Spacer(Modifier.height(12.dp))
         }
         Spacer(Modifier.height(6.dp))
-        SoftCard(tint = lerpColor(Color.White, Rose, 0.22f)) {
-            Overline("Il micro-inizio di oggi")
+        SoftCard(tint = lerpColor(Color.White, Lavender, 0.18f)) {
+            Overline("Il concetto chiave")
             Spacer(Modifier.height(8.dp))
-            QuoteText(lesson.tryToday, 19)
+            QuoteText(lesson.key, 19)
+        }
+        Spacer(Modifier.height(12.dp))
+        SoftCard(tint = lerpColor(Color.White, Rose, 0.22f)) {
+            Overline("Per oggi")
+            Spacer(Modifier.height(8.dp))
+            Body(lesson.tryToday, Plum, 16)
         }
         Spacer(Modifier.height(26.dp))
-        PrimaryButton("Provo subito, 5 minuti", Modifier.fillMaxWidth()) {
+        val ws = worksheetById(lesson.worksheet)
+        if (ws != null) {
+            PrimaryButton("Compila la scheda: ${ws.title}", Modifier.fillMaxWidth()) {
+                if (!wasDone) prefs.markLessonDone(lesson.id)
+                onWorksheet(ws.id)
+            }
+            Spacer(Modifier.height(10.dp))
+        }
+        (if (ws == null) PrimaryButton("Provo subito, ${prefs.preferredMinutes} minuti", Modifier.fillMaxWidth()) {
             if (!wasDone) prefs.markLessonDone(lesson.id)
             onTry()
-        }
+        } else GhostButton("Provo subito, ${prefs.preferredMinutes} minuti", Modifier.fillMaxWidth()) {
+            if (!wasDone) prefs.markLessonDone(lesson.id)
+            onTry()
+        })
         Spacer(Modifier.height(10.dp))
         GhostButton(if (wasDone) "Chiudi" else "Letta, grazie", Modifier.fillMaxWidth()) {
             if (!wasDone) prefs.markLessonDone(lesson.id)

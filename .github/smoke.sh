@@ -103,11 +103,19 @@ sleep 2
 adb shell input swipe 540 1900 540 600 400
 shot 31_oggi_giu 2
 adb shell am start -W -n $ACT --ei open_tab 0 --es open_route checkin
-shot 32_checkin 3
-adb shell am start -W -n $ACT --ei open_tab 5 --es open_route thought
-tap_text "Non ce la farò mai"
 tap_text "Continua"
-shot 33_pensiero 3
+shot 32_termometro 3
+adb shell am start -W -n $ACT --ei open_tab 3 --es open_route sheet --es sheet pensieri
+shot 33_scheda_intro 3
+tap_text "Iniziamo"
+shot 34_scheda_1 2
+tap_text "Avanti"
+tap_text "Non ce la farò mai"
+shot 35_scheda_2 2
+adb shell am start -W -n $ACT --ei open_tab 2
+sleep 3
+adb shell input swipe 540 1900 540 500 400
+shot 36_percorso_giu 2
 
 adb shell pidof $PKG > smoke/pid.txt || echo "NON IN ESECUZIONE" > smoke/pid.txt
 adb logcat -d > smoke/logcat.txt
