@@ -3,7 +3,7 @@ name: Prova avvio su emulatore
 on:
   workflow_dispatch:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, voce]
 
 permissions:
   contents: write
