@@ -77,7 +77,7 @@ object Reminders {
         )
         val n = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setColor(0xFFCF6A44.toInt())
+            .setColor(0xFF4E8577.toInt())
             .setContentTitle(title)
             .setContentText(text)
             .setStyle(Notification.BigTextStyle().bigText(text))

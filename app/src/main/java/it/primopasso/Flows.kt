@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.TimePickerDialog
 import android.view.WindowManager
 import androidx.compose.foundation.Canvas
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,15 +60,16 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MicroStartFlow(prefs: Prefs, pending: PendingTask?, onClose: () -> Unit) {
+fun MicroStartFlow(prefs: Prefs, pending: PendingTask?, initialStep: String? = null, onClose: () -> Unit) {
+    val context = LocalContext.current
     val profile = remember { profileById(prefs.blockProfile) }
     var stage by remember { mutableIntStateOf(0) }
     var task by remember { mutableStateOf(pending?.text ?: "") }
     var category by remember { mutableStateOf(pending?.category ?: "altro") }
     var reason by remember { mutableStateOf<String?>(null) }
     var ideaIndex by remember { mutableIntStateOf(0) }
-    var step by remember { mutableStateOf(microTemplates.getValue(pending?.category ?: "altro")[0]) }
-    var minutes by remember { mutableIntStateOf(5) }
+    var step by remember { mutableStateOf(initialStep?.takeIf { it.isNotBlank() } ?: microTemplates.getValue(pending?.category ?: "altro")[0]) }
+    var minutes by remember { mutableIntStateOf(prefs.preferredMinutes) }
     var totalSeconds by remember { mutableIntStateOf(0) }
     val cheer = remember { startCheers.random() }
 
@@ -139,6 +142,14 @@ fun MicroStartFlow(prefs: Prefs, pending: PendingTask?, onClose: () -> Unit) {
             }
             Spacer(Modifier.height(28.dp))
             PrimaryButton("Inizia ora", Modifier.fillMaxWidth()) { stage = 1 }
+            Spacer(Modifier.height(10.dp))
+            GhostButton("💬  Dillo a un'amica, poi inizia", Modifier.fillMaxWidth()) {
+                shareIntention(
+                    context,
+                    "Sto per iniziare: ${task.ifBlank { "una cosa che rimando" }}. Primo passo: $step. Mi fai il tifo? Tra $minutes minuti ti dico com'è andata 🌱"
+                )
+                stage = 1
+            }
             if (pending == null) {
                 Spacer(Modifier.height(10.dp))
                 GhostButton("Salvala per dopo", Modifier.fillMaxWidth()) {
@@ -299,11 +310,45 @@ fun KitFlow(exercise: Exercise, onClose: () -> Unit) {
 
 @Composable
 fun LessonScreen(prefs: Prefs, lesson: Lesson, onDone: () -> Unit, onTry: () -> Unit) {
+    val context = LocalContext.current
     val wasDone = remember { lesson.id in prefs.lessonsDone() }
+    val speaker = remember { Speaker(context) }
+    var playing by remember { mutableStateOf(false) }
+    var noVoice by remember { mutableStateOf(false) }
+    DisposableEffect(Unit) { onDispose { speaker.shutdown() } }
     PageColumn(onBack = onDone) {
         Overline("Lezione ${lesson.id} di ${lessons.size} · 5 minuti")
         Spacer(Modifier.height(8.dp))
         Display(lesson.title, 30)
+        Spacer(Modifier.height(14.dp))
+        Row(
+            Modifier
+                .clip(RoundedCornerShape(50))
+                .background(if (playing) LavenderDeep else lerpColor(Color.White, Lavender, 0.22f))
+                .clickable {
+                    if (playing) {
+                        speaker.stop()
+                        playing = false
+                    } else {
+                        val ok = speaker.speak(
+                            listOf("Lezione ${lesson.id}. ${lesson.title}.") + lesson.body.split("\n\n") +
+                                listOf("Il micro-inizio di oggi. ${lesson.tryToday}")
+                        ) { playing = false }
+                        playing = ok
+                        noVoice = !ok || !speaker.italian
+                    }
+                }
+                .padding(horizontal = 18.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(if (playing) "■" else "▶", color = if (playing) Color.White else LavenderDeep, fontSize = 14.sp)
+            Spacer(Modifier.width(10.dp))
+            Text(if (playing) "Ferma l'ascolto" else "Ascolta la lezione", color = if (playing) Color.White else LavenderDeep, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        }
+        if (noVoice) {
+            Spacer(Modifier.height(6.dp))
+            Body("Se non senti nulla, attiva la voce italiana in Impostazioni del telefono → Sintesi vocale.", PlumFaint, 12)
+        }
         Spacer(Modifier.height(16.dp))
         lesson.body.split("\n\n").forEach {
             Body(it, Plum, 17)

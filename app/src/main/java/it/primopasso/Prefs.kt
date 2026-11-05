@@ -21,6 +21,10 @@ data class StartEntry(
     val hour: Int get() = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).hour
 }
 
+data class WeeklyCheckin(val time: Long, val mood: Int, val wentWell: String, val lighten: String, val note: String, val target: Int, val intention: String)
+data class Habit(val id: Long, val text: String)
+data class ThoughtEntry(val time: Long, val thought: String, val types: List<String>, val reframe: String, val step: String)
+
 /** Una cosa che stai rimandando, salvata per iniziarla quando vuoi. */
 data class PendingTask(val id: Long, val text: String, val category: String)
 
@@ -121,6 +125,106 @@ class Prefs(context: Context) {
     }
 
     fun removePending(id: Long) = savePending(pending().filter { it.id != id })
+
+    // ---- preferenze dal questionario ----
+    var preferredMinutes: Int
+        get() = sp.getInt("pref_minutes", 5)
+        set(v) = sp.edit().putInt("pref_minutes", v).apply()
+
+    fun applyQuiz(a: Map<String, Set<String>>) {
+        preferredMinutes = preferredMinutes(a)
+        morningMinutes = preferredMorning(a)
+        if (weeklyTarget == 0) weeklyTarget = if (preferredMinutes <= 2) 3 else 5
+    }
+
+    // ---- obiettivo della settimana ----
+    var weeklyTarget: Int
+        get() = sp.getInt("weekly_target", 0)
+        set(v) = sp.edit().putInt("weekly_target", v).apply()
+
+    var weeklyIntention: String
+        get() = sp.getString("weekly_intention", "") ?: ""
+        set(v) = sp.edit().putString("weekly_intention", v.trim()).apply()
+
+    // ---- check-in settimanale ----
+    private fun jsonList(key: String): JSONArray = try {
+        JSONArray(sp.getString(key, "[]") ?: "[]")
+    } catch (_: Exception) {
+        JSONArray()
+    }
+
+    fun checkins(): List<WeeklyCheckin> {
+        val a = jsonList("checkins")
+        return (0 until a.length()).map {
+            val o = a.getJSONObject(it)
+            WeeklyCheckin(o.optLong("t"), o.optInt("m"), o.optString("w"), o.optString("l"), o.optString("n"), o.optInt("g"), o.optString("i"))
+        }.sortedByDescending { it.time }
+    }
+
+    fun addCheckin(c: WeeklyCheckin) {
+        val a = jsonList("checkins")
+        a.put(JSONObject().put("t", c.time).put("m", c.mood).put("w", c.wentWell).put("l", c.lighten).put("n", c.note).put("g", c.target).put("i", c.intention))
+        sp.edit().putString("checkins", a.toString()).putLong("last_checkin_day", today()).apply()
+        weeklyTarget = c.target
+        weeklyIntention = c.intention
+    }
+
+    var installDay: Long
+        get() {
+            if (!sp.contains("install_day")) sp.edit().putLong("install_day", today()).apply()
+            return sp.getLong("install_day", today())
+        }
+        set(v) = sp.edit().putLong("install_day", v).apply()
+
+    fun checkinDue(): Boolean {
+        val last = sp.getLong("last_checkin_day", -1L)
+        return if (last < 0) today() - installDay >= 6 else today() - last >= 7
+    }
+
+    // ---- piccole abitudini ----
+    fun habits(): List<Habit> {
+        val a = jsonList("habits")
+        return (0 until a.length()).map { val o = a.getJSONObject(it); Habit(o.optLong("i"), o.optString("x")) }
+    }
+
+    fun addHabit(text: String) {
+        if (text.isBlank()) return
+        val a = jsonList("habits")
+        a.put(JSONObject().put("i", System.currentTimeMillis()).put("x", text.trim()))
+        sp.edit().putString("habits", a.toString()).apply()
+    }
+
+    fun removeHabit(id: Long) {
+        val list = habits().filter { it.id != id }
+        val a = JSONArray()
+        list.forEach { a.put(JSONObject().put("i", it.id).put("x", it.text)) }
+        sp.edit().putString("habits", a.toString()).apply()
+    }
+
+    fun habitDone(id: Long, day: Long) = (sp.getStringSet("habit_done", emptySet()) ?: emptySet()).contains("$id:$day")
+
+    fun toggleHabit(id: Long, day: Long) {
+        val set = HashSet(sp.getStringSet("habit_done", emptySet()) ?: emptySet())
+        val k = "$id:$day"
+        if (!set.remove(k)) set.add(k)
+        sp.edit().putStringSet("habit_done", set).apply()
+    }
+
+    // ---- pensieri che bloccano ----
+    fun thoughts(): List<ThoughtEntry> {
+        val a = jsonList("thoughts")
+        return (0 until a.length()).map {
+            val o = a.getJSONObject(it)
+            val t = o.optJSONArray("y") ?: JSONArray()
+            ThoughtEntry(o.optLong("t"), o.optString("x"), (0 until t.length()).map { i -> t.getString(i) }, o.optString("r"), o.optString("s"))
+        }.sortedByDescending { it.time }
+    }
+
+    fun addThought(e: ThoughtEntry) {
+        val a = jsonList("thoughts")
+        a.put(JSONObject().put("t", e.time).put("x", e.thought).put("y", JSONArray(e.types)).put("r", e.reframe).put("s", e.step))
+        sp.edit().putString("thoughts", a.toString()).apply()
+    }
 
     // ---- promemoria ----
     var morningOn: Boolean

@@ -42,23 +42,39 @@ shot 02_intro_quiz 3
 tap_text "Iniziamo"
 shot 03_domanda1 3
 tap_text "So cosa fare"
+tap_text "Continua"
 tap_text "Mi sembra una montagna"
-tap_text "Quando la decisione"
-tap_text "Spesso"
-tap_text "A volte"
-shot 04_domanda6 2
-tap_text "Spesso"
-tap_text "Il tempo per me"
-tap_text "I miei obiettivi"
-shot 05_multi 2
+tap_text "Ho paura di sbagliare"
+shot 04_multi 2
+tap_text "Continua"
+tap_text "Quando qualcuno"
+tap_text "Continua"
+tap_text "Senso di colpa"
+tap_text "Continua"
+tap_text "Scorro il telefono"
 tap_text "Continua"
 tap_text "Lavoro"
 tap_text "Continua"
-tap_text "Meno cose in sospeso"
+tap_text "Tarda mattina"
+tap_text "Circa cinque minuti"
+tap_text "La musica"
+tap_text "Un timer"
+tap_text "Continua"
+tap_text "Mi critico duramente"
+tap_text "Spesso"
+tap_text "A volte"
+tap_text "Spesso"
+tap_text "Il tempo per me"
+tap_text "Continua"
+tap_text "Più fiducia"
 tap_text "Continua"
 shot 06_ritratto 4
 adb shell input swipe 540 1900 540 400 400
 shot 07_ritratto_giu 2
+tap_text "Vedi il tuo piano"
+shot 07b_piano 3
+adb shell input swipe 540 1900 540 500 400
+shot 07c_piano_giu 2
 tap_text "Continua"
 shot 08a_promemoria 3
 tap_text "Non ora"
@@ -76,12 +92,22 @@ tap_text "Ho finito tutto"
 shot 13_fatto 3
 adb shell am start -W -n $ACT --ei open_tab 2 --es open_route lesson
 shot 14_lezione 3
-for t in 1 2 3 4; do
+for t in 1 2 3 4 5 6; do
   adb shell am start -W -n $ACT --ei open_tab $t
   shot 2${t}_scheda 3
 done
 adb shell am start -W -n $ACT --ei open_tab 3 --es open_route kit --es kit k_ridicolo
 shot 30_kit 4
+adb shell am start -W -n $ACT --ei open_tab 0
+sleep 2
+adb shell input swipe 540 1900 540 600 400
+shot 31_oggi_giu 2
+adb shell am start -W -n $ACT --ei open_tab 0 --es open_route checkin
+shot 32_checkin 3
+adb shell am start -W -n $ACT --ei open_tab 5 --es open_route thought
+tap_text "Non ce la farò mai"
+tap_text "Continua"
+shot 33_pensiero 3
 
 adb shell pidof $PKG > smoke/pid.txt || echo "NON IN ESECUZIONE" > smoke/pid.txt
 adb logcat -d > smoke/logcat.txt

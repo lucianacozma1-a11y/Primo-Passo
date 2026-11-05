@@ -130,8 +130,11 @@ fun HomeTab(
     onLesson: (Int) -> Unit,
     onProfile: () -> Unit,
     onOpenTab: (Int) -> Unit,
-    onSettings: () -> Unit
+    onSettings: () -> Unit,
+    onPlan: () -> Unit,
+    onCheckin: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val profile = remember(version) { profileById(prefs.blockProfile) }
     val pending = remember(version) { prefs.pending() }
     val week = remember(version) {
@@ -158,8 +161,14 @@ fun HomeTab(
 
         BigStartCard(onStart)
 
+        Spacer(Modifier.height(14.dp))
+        TipCard(prefs)
+
         SectionTitle("La lezione del mattino")
         LessonCard(prefs, version, onLesson)
+
+        SectionTitle("La tua settimana")
+        GoalCard(prefs, version, onCheckin)
 
         if (pending.isNotEmpty()) {
             SectionTitle("Le cose che rimandi", "Una alla volta, quando vuoi")
@@ -182,6 +191,26 @@ fun HomeTab(
         }
         Spacer(Modifier.height(8.dp))
         Body("Qui non ci sono serie da perdere: ogni inizio si somma.", PlumFaint, 12)
+
+        SectionTitle("Una compagna di inizio", "Le alleate rendono tutto più facile")
+        SoftCard(onClick = {
+            shareIntention(context, "Ho iniziato a usare Primo Passo per smettere di rimandare. Ti va di essere la mia compagna di inizio? Ogni tanto ti scrivo cosa sto per iniziare e tu mi fai il tifo 🌱")
+        }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("🤝", fontSize = 28.sp)
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Invita un'amica", color = Plum, fontFamily = Serif, fontSize = 18.sp)
+                    Body("Dirlo a qualcuno rende l'intenzione reale. Lei ti fa il tifo, tu fai il primo passo.", size = 13)
+                }
+            }
+        }
+
+        SectionTitle("Il tuo piano")
+        SoftCard(onClick = onPlan, tint = lerpColor(Color.White, Lavender, 0.12f)) {
+            Text("Rivedi il tuo piano personale", color = Plum, fontFamily = Serif, fontSize = 18.sp)
+            Body("Lezioni, kit, check-in, abitudini e pensieri: tutto quello che è stato scelto per te.", size = 13)
+        }
 
         SectionTitle("Il tuo profilo")
         SoftCard(onClick = onProfile) {
@@ -257,7 +286,7 @@ fun StartTab(prefs: Prefs, version: Int, onStart: () -> Unit, onStartPending: (L
 
         if (profile != null) {
             SectionTitle("Per come funzioni tu", profile.title)
-            profile.kitIds.mapNotNull { kitById(it) }.forEach { KitRow(it, true) { onKit(it.id) } }
+            personalKitIds(prefs.quizAnswers(), profile).mapNotNull { kitById(it) }.forEach { KitRow(it, true) { onKit(it.id) } }
         }
     }
 }
@@ -286,7 +315,7 @@ fun LessonsTab(prefs: Prefs, version: Int, onLesson: (Int) -> Unit) {
         LessonCard(prefs, version, onLesson)
 
         if (profile != null) {
-            val forMe = profile.lessonIds.mapNotNull { lessonById(it) }
+            val forMe = personalLessonIds(prefs.quizAnswers(), profile).mapNotNull { lessonById(it) }
             SectionTitle("Consigliate per te", profile.title)
             forMe.forEach { l ->
                 SoftCard(padding = PaddingValues(horizontal = 16.dp, vertical = 14.dp), modifier = Modifier.padding(bottom = 8.dp), onClick = { onLesson(l.id) }) {
@@ -331,10 +360,11 @@ fun KitTab(prefs: Prefs, version: Int, onKit: (String) -> Unit) {
         Spacer(Modifier.height(8.dp))
         Body("Tecniche brevi e pratiche per quando sei bloccata. Usale da sole o prima di \"Inizia ora\".")
         if (profile != null) {
+            val mine = personalKitIds(prefs.quizAnswers(), profile)
             SectionTitle("Per come funzioni tu", profile.title)
-            profile.kitIds.mapNotNull { kitById(it) }.forEach { KitRow(it, true) { onKit(it.id) } }
+            mine.mapNotNull { kitById(it) }.forEach { KitRow(it, true) { onKit(it.id) } }
             SectionTitle("Tutte le tecniche")
-            startKit.filter { it.id !in profile.kitIds }.forEach { KitRow(it, false) { onKit(it.id) } }
+            startKit.filter { it.id !in mine }.forEach { KitRow(it, false) { onKit(it.id) } }
         } else {
             Spacer(Modifier.height(16.dp))
             startKit.forEach { KitRow(it, false) { onKit(it.id) } }
@@ -431,6 +461,23 @@ fun LogTab(prefs: Prefs, version: Int, onStart: () -> Unit) {
         SoftCard {
             val max = cats.first().value
             cats.forEach { (c, n) -> val cat = categoryById(c); BarRow("${cat.symbol} ${cat.label}", n, max, Peach) }
+        }
+
+        val checks = prefs.checkins()
+        if (checks.isNotEmpty()) {
+            SectionTitle("I tuoi check-in")
+            checks.take(8).forEach { c ->
+                SoftCard(padding = PaddingValues(16.dp), modifier = Modifier.padding(bottom = 8.dp)) {
+                    Text(
+                        Instant.ofEpochMilli(c.time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMMM", IT)) +
+                            "  " + listOf("😣", "😕", "😐", "🙂", "😊").getOrElse(c.mood - 1) { "" },
+                        color = LavenderDeep, fontSize = 12.sp, fontWeight = FontWeight.SemiBold
+                    )
+                    if (c.wentWell.isNotBlank()) Body("Bene: ${c.wentWell}", Plum, 14)
+                    if (c.lighten.isNotBlank()) Body("Da alleggerire: ${c.lighten}", PlumSoft, 13)
+                    if (c.intention.isNotBlank()) Body("Intenzione: ${c.intention} · ${c.target} inizi", PlumSoft, 13)
+                }
+            }
         }
 
         SectionTitle("Gli ultimi inizi")

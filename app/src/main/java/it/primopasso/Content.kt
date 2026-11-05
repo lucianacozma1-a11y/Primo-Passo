@@ -114,64 +114,156 @@ data class QQuestion(val id: String, val text: String, val hint: String?, val op
 
 private val freq = listOf(QOption("Spesso", value = "spesso"), QOption("A volte", value = "avolte"), QOption("Raramente", value = "raramente"))
 
+private const val ALL = "Scegli tutto ciò che vale per te"
+
 val quizQuestions = listOf(
     QQuestion(
-        "q1", "Quando rimandi qualcosa, di solito…", null,
+        "q1", "Quando rimandi qualcosa, cosa succede di solito?", ALL,
         listOf(
             QOption("So cosa fare ma non riesco a partire", "avvio"),
             QOption("Ci penso e ripenso, e resto ferma", "rimugino"),
             QOption("Aspetto l'ultimo momento, poi corro", "scadenza"),
             QOption("Inizio, poi mi distraggo con altro", "disperdo")
-        )
+        ), multi = true
     ),
     QQuestion(
-        "q2", "Cosa succede nella tua testa prima di iniziare?", null,
+        "q2", "Cosa ti passa per la testa prima di iniziare?", ALL,
         listOf(
             QOption("Mi sembra una montagna", "avvio"),
+            QOption("Non so da dove cominciare", "avvio"),
             QOption("Ho paura di sbagliare o di non farlo bene", "rimugino"),
-            QOption("Non sento urgenza, finché non c'è", "scadenza"),
-            QOption("Mi vengono in mente mille altre cose", "disperdo")
-        )
+            QOption("Devo prima capire tutto alla perfezione", "rimugino"),
+            QOption("Tanto c'è ancora tempo", "scadenza"),
+            QOption("Mi vengono in mente mille altre cose", "disperdo"),
+            QOption("Mi sento già stanca", value = "stanca_pre")
+        ), multi = true
     ),
     QQuestion(
-        "q3", "Quando riesci a lavorare bene?", null,
+        "q3", "Quando riesci a lavorare bene?", ALL,
         listOf(
             QOption("Quando qualcuno mi dà il via o è con me", "avvio"),
             QOption("Quando la decisione è già presa", "rimugino"),
             QOption("Sotto pressione, all'ultimo", "scadenza"),
-            QOption("Quando è nuovo o interessante", "disperdo")
-        )
+            QOption("Quando è nuovo o interessante", "disperdo"),
+            QOption("Quando sono riposata", value = "riposata")
+        ), multi = true
     ),
-    QQuestion("stanchezza", "Ti senti stanca, nella mente o nel corpo?", null, freq),
-    QQuestion("rimuginio", "Ti capita di rimuginare la sera, faticando a staccare?", null, freq),
-    QQuestion("no", "Ti è difficile dire di no agli altri?", null, freq),
     QQuestion(
-        "sacrifici", "Cosa sacrifichi più spesso per gli altri?", "Scegli tutto ciò che vale per te",
+        "emozioni", "Cosa senti quando rimandi?", ALL,
         listOf(
-            QOption("Il sonno"), QOption("Il tempo per me"), QOption("I miei obiettivi"),
-            QOption("Lo spazio emotivo"), QOption("Niente di particolare", value = "niente")
-        ),
-        multi = true
+            QOption("Senso di colpa", value = "colpa"), QOption("Ansia", value = "ansia"),
+            QOption("Vergogna", value = "vergogna"), QOption("Frustrazione", value = "frustrazione"),
+            QOption("Sollievo, per un po'", value = "sollievo"), QOption("Niente di particolare", value = "niente")
+        ), multi = true
     ),
     QQuestion(
-        "aree", "Cosa rimandi più spesso?", "Scegli tutto ciò che vale per te",
+        "invece", "Cosa fai invece, quando rimandi?", ALL,
+        listOf(
+            QOption("Scorro il telefono", value = "telefono"), QOption("Faccio altre cose meno importanti", value = "altro"),
+            QOption("Pulisco o riordino", value = "pulisco"), QOption("Mangio o spizzico", value = "mangio"),
+            QOption("Mi sdraio o dormo", value = "dormo"), QOption("Penso e ripenso", value = "penso")
+        ), multi = true
+    ),
+    QQuestion(
+        "aree", "Cosa rimandi più spesso?", ALL,
         listOf(
             QOption("Casa e ordine", value = "casa"), QOption("Carte e burocrazia", value = "carte"),
             QOption("Lavoro", value = "lavoro"), QOption("Studio", value = "studio"),
             QOption("Movimento", value = "movimento"), QOption("Messaggi e telefonate", value = "messaggi"),
             QOption("Cura di me", value = "cura")
-        ),
-        multi = true
+        ), multi = true
     ),
     QQuestion(
-        "desideri", "Cosa ti piacerebbe, tra un mese?", "Scegli tutto ciò che vale per te",
+        "energia", "In che momento della giornata hai più energia?", null,
+        listOf(
+            QOption("Appena sveglia", value = "presto"), QOption("Tarda mattina", value = "mattina"),
+            QOption("Pomeriggio", value = "pomeriggio"), QOption("Sera", value = "sera")
+        )
+    ),
+    QQuestion(
+        "durata", "Per quanto riesci a concentrarti senza fatica?", "Sii sincera: qui si parte da dove sei davvero",
+        listOf(
+            QOption("Un paio di minuti", value = "2"), QOption("Circa cinque minuti", value = "5"),
+            QOption("Dieci, quindici minuti", value = "10"), QOption("Più di venti minuti", value = "20")
+        )
+    ),
+    QQuestion(
+        "aiuta", "Cosa ti aiuta a partire?", ALL,
+        listOf(
+            QOption("Una scadenza", value = "scadenza"), QOption("Qualcuno vicino a me", value = "compagnia"),
+            QOption("La musica", value = "musica"), QOption("Una ricompensa", value = "ricompensa"),
+            QOption("Una lista chiara", value = "lista"), QOption("Un timer", value = "timer"),
+            QOption("Un posto in ordine", value = "ordine"), QOption("Non lo so ancora", value = "nonso")
+        ), multi = true
+    ),
+    QQuestion(
+        "voce", "Come ti parli quando non riesci a fare qualcosa?", null,
+        listOf(
+            QOption("Mi critico duramente", value = "dura"), QOption("Mi dico che sono pigra", value = "pigra"),
+            QOption("Di solito mi capisco", value = "gentile"), QOption("Non ci faccio caso", value = "neutra")
+        )
+    ),
+    QQuestion("stanchezza", "Ti senti stanca, nella mente o nel corpo?", null, freq),
+    QQuestion("rimuginio", "La sera la mente fatica a staccare?", null, freq),
+    QQuestion("no", "Ti è difficile dire di no agli altri?", null, freq),
+    QQuestion(
+        "sacrifici", "Cosa sacrifichi più spesso per gli altri?", ALL,
+        listOf(
+            QOption("Il sonno"), QOption("Il tempo per me"), QOption("I miei obiettivi"),
+            QOption("Lo spazio emotivo"), QOption("Niente di particolare", value = "niente")
+        ), multi = true
+    ),
+    QQuestion(
+        "desideri", "Cosa ti piacerebbe, tra un mese?", ALL,
         listOf(
             QOption("Iniziare senza tanta fatica"), QOption("Meno cose in sospeso"),
-            QOption("Meno senso di colpa"), QOption("Più tempo per me"), QOption("Più energia")
-        ),
-        multi = true
+            QOption("Meno senso di colpa"), QOption("Più tempo per me"),
+            QOption("Più energia"), QOption("Più fiducia in me stessa")
+        ), multi = true
     )
 )
+
+/** Valori "esclusivi" che deselezionano gli altri nelle domande multiple. */
+val exclusiveValues = setOf("niente", "nonso")
+
+private val helpToKit = mapOf(
+    "scadenza" to "k_minisc", "ricompensa" to "k_ricompensa", "lista" to "k_svuota",
+    "timer" to "k_due", "ordine" to "k_terreno", "musica" to "k_unasola"
+)
+
+fun personalKitIds(a: Map<String, Set<String>>, p: BlockProfile?): List<String> {
+    val fromHelp = (a["aiuta"] ?: emptySet()).mapNotNull { helpToKit[it] }
+    val extra = mutableListOf<String>()
+    if (a["q2"]?.contains("stanca_pre") == true || a["stanchezza"]?.contains("spesso") == true) extra += "k_sospiro"
+    if (a["invece"]?.contains("penso") == true) extra += "k_dieci"
+    return ((p?.kitIds ?: emptyList()) + fromHelp + extra).distinct().take(5)
+}
+
+fun personalLessonIds(a: Map<String, Set<String>>, p: BlockProfile?): List<Int> {
+    val extra = mutableListOf<Int>()
+    val voce = a["voce"] ?: emptySet()
+    if ("dura" in voce || "pigra" in voce) extra += listOf(1, 21, 20)
+    if (a["no"]?.contains("spesso") == true) extra += listOf(17, 18)
+    if (a["invece"]?.contains("telefono") == true) extra += 23
+    if (a["aiuta"]?.contains("compagnia") == true) extra += 10
+    if (a["aiuta"]?.contains("musica") == true) extra += 27
+    if (a["stanchezza"]?.contains("spesso") == true) extra += listOf(16, 26)
+    return (extra + (p?.lessonIds ?: emptyList())).distinct().take(7)
+}
+
+fun preferredMinutes(a: Map<String, Set<String>>): Int = when (a["durata"]?.firstOrNull()) {
+    "2" -> 2
+    "10", "20" -> 10
+    else -> 5
+}
+
+fun preferredMorning(a: Map<String, Set<String>>): Int = when (a["energia"]?.firstOrNull()) {
+    "presto" -> 7 * 60 + 45
+    "mattina" -> 9 * 60 + 30
+    "pomeriggio" -> 13 * 60 + 30
+    "sera" -> 18 * 60
+    else -> 8 * 60 + 30
+}
 
 fun computeProfile(answers: Map<String, Set<String>>): String {
     val counts = LinkedHashMap<String, Int>()
@@ -424,5 +516,76 @@ val dailyNudges = listOf(
     "Una cosa sola, adesso."
 )
 
-val Sun = Color(0xFFF3C969)
+val Sun = Color(0xFFE6DAC4)
 val Sage = Color(0xFF8DB8A3)
+
+
+// ---------------- Consiglio del giorno ----------------
+
+val profileTips = mapOf(
+    "avvio" to listOf(
+        "Oggi scegli il passo più ridicolo possibile: aprire, prendere, scrivere una parola.",
+        "Se non parti, rimpicciolisci ancora. Il problema non sei tu: è il passo troppo grande.",
+        "Chiedi a qualcuno di fare \"il via\" con te: un messaggio basta.",
+        "Il timer parte per te: tu devi solo esserci.",
+        "Prepara gli strumenti prima di iniziare: è già un inizio."
+    ),
+    "rimugino" to listOf(
+        "Dai a una scelta di oggi dieci secondi, non dieci minuti.",
+        "Scrivi la versione brutta: si sistema dopo.",
+        "Chiediti: cosa succede di peggio se lo faccio al 70%?",
+        "Quando giri in tondo, scrivi le opzioni e scegli la prima ragionevole.",
+        "Il pensiero perfetto non arriva: arriva il pensiero fatto."
+    ),
+    "scadenza" to listOf(
+        "Crea una mini-scadenza entro oggi e dilla a qualcuno.",
+        "Cinque minuti oggi valgono più di una notte di corsa domani.",
+        "Metti il timer ben visibile: è la tua urgenza gentile.",
+        "Dividi la scadenza grande in tre scadenze piccole.",
+        "Prepara stasera il primo passo di domani."
+    ),
+    "disperdo" to listOf(
+        "Una cosa sola: chiudi le altre schede per dieci minuti.",
+        "Tieni accanto un foglio \"dopo\" per i pensieri che arrivano.",
+        "Premiati subito dopo il primo blocco di cinque minuti.",
+        "Rendi nuovo il compito: cambia posto, musica o ordine.",
+        "Blocchi brevi e chiari: cinque minuti, pausa, altri cinque."
+    )
+)
+
+// ---------------- Pensieri che bloccano ----------------
+
+data class ThoughtType(val id: String, val name: String, val explain: String)
+
+val thoughtExamples = listOf(
+    "Non ce la farò mai", "Deve essere perfetto", "Ormai è troppo tardi", "Gli altri sono più bravi di me",
+    "Se sbaglio è un disastro", "Sono pigra", "Lo faccio quando avrò voglia", "Non ho tempo"
+)
+
+val thoughtTypes = listOf(
+    ThoughtType("tutto", "Tutto o niente", "Vedo solo due possibilità: perfetto o fallimento."),
+    ThoughtType("catastrofe", "Catastrofe", "Immagino subito lo scenario peggiore."),
+    ThoughtType("devo", "I \"devo\"", "Regole rigide su come dovrei essere o fare."),
+    ThoughtType("etichetta", "Etichetta", "Mi giudico con una parola: pigra, incapace, disordinata."),
+    ThoughtType("mente", "Leggere nel pensiero", "Do per scontato cosa pensano gli altri di me."),
+    ThoughtType("futuro", "Previsione negativa", "Sono sicura che andrà male, prima ancora di provare."),
+    ThoughtType("confronto", "Confronto", "Mi misuro con gli altri e mi sento sempre indietro.")
+)
+
+val reframeQuestions = listOf(
+    "Quali prove ho che sia vero? E quali che non lo sia?",
+    "Cosa è successo le altre volte in cui l'ho pensato?",
+    "Cosa direi a un'amica che pensa la stessa cosa?",
+    "Qual è una versione più gentile e realistica di questo pensiero?"
+)
+
+// ---------------- Piccole abitudini ----------------
+
+val habitIdeas = listOf(
+    "Un bicchiere d'acqua al risveglio", "Cinque minuti di ordine", "Leggere due pagine",
+    "Preparare le cose la sera", "Una passeggiata breve", "Scrivere le tre cose del giorno",
+    "Spegnere gli schermi prima di dormire", "Un respiro lento prima di iniziare", "Rispondere a un messaggio rimandato"
+)
+
+val checkinWentWell = listOf("Ho iniziato più cose", "Mi sono sentita meno in colpa", "Ho finito qualcosa di importante", "Ho riposato", "Ho chiesto aiuto", "Ho detto qualche no")
+val checkinLighten = listOf("Meno impegni", "Più pause", "Dormire di più", "Dire più no", "Meno telefono", "Chiedere aiuto")

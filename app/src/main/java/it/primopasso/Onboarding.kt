@@ -70,6 +70,15 @@ fun personalNotes(a: Map<String, Set<String>>): List<String> {
     val sac = (a["sacrifici"] ?: emptySet()) - "niente"
     if (sac.isNotEmpty())
         out += "Sacrifichi spesso ${sac.joinToString(", ") { it.lowercase() }}: ricordati che anche tu sei nella lista delle priorità."
+    val emo = a["emozioni"] ?: emptySet()
+    if ("colpa" in emo || "vergogna" in emo)
+        out += "Rimandare ti lascia senso di colpa: qui non ci sono serie da perdere né rimproveri. Ogni inizio conta, anche piccolo."
+    if (a["invece"]?.contains("telefono") == true)
+        out += "Quando rimandi prendi il telefono: prova a sostituirlo con il \"Sospiro per ripartire\" del Kit."
+    val voce = a["voce"] ?: emptySet()
+    if ("dura" in voce || "pigra" in voce)
+        out += "Ti parli in modo duro. Le lezioni \"Non sei pigra\" e \"Parlati come a un'amica\" sono state scelte per te."
+    out += "Partiamo da ${preferredMinutes(a)} minuti alla volta: è il tuo ritmo, non una gara."
     return out
 }
 
@@ -124,6 +133,7 @@ fun QuizFlow(prefs: Prefs, showIntro: Boolean, finishLabel: String, onFinish: ()
         if (step >= total) {
             prefs.saveQuiz(answers)
             prefs.blockProfile = computeProfile(answers)
+            prefs.applyQuiz(answers)
         }
     }
 
@@ -135,7 +145,7 @@ fun QuizFlow(prefs: Prefs, showIntro: Boolean, finishLabel: String, onFinish: ()
                 Display("Come ti blocchi?", 30, align = TextAlign.Center)
                 Spacer(Modifier.height(12.dp))
                 Body(
-                    "Nove domande, due minuti. Non è un test e non ci sono risposte giuste: serve solo a capire come funzioni, per proporti gli esercizi più adatti.",
+                    "Quindici domande, tre minuti. Quasi tutte permettono più risposte. Non è un test e non ci sono risposte giuste: serve a capire come funzioni, per costruire un piano davvero tuo.",
                     Plum, 16, TextAlign.Center
                 )
                 Spacer(Modifier.height(34.dp))
@@ -175,8 +185,8 @@ fun QuizFlow(prefs: Prefs, showIntro: Boolean, finishLabel: String, onFinish: ()
                         if (q.multi) {
                             val cur = answers[q.id] ?: emptySet()
                             val next = if (sel) cur - o.value
-                            else if (o.value == "niente") setOf("niente")
-                            else cur - "niente" + o.value
+                            else if (o.value in exclusiveValues) setOf(o.value)
+                            else cur - exclusiveValues + o.value
                             answers = answers + (q.id to next)
                         } else {
                             answers = answers + (q.id to setOf(o.value))
@@ -230,7 +240,8 @@ fun Onboarding(prefs: Prefs, onRequestNotifications: () -> Unit, onFinish: () ->
                 page = 1
             }
         }
-        1 -> QuizFlow(prefs, showIntro = true, finishLabel = "Continua", onFinish = { page = 2 }, onClose = null)
+        1 -> QuizFlow(prefs, showIntro = true, finishLabel = "Vedi il tuo piano", onFinish = { page = 3 }, onClose = null)
+        3 -> PlanScreen(prefs, buttonLabel = "Continua", onBack = null) { page = 2 }
         else -> CenterPage {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 repeat(3) {

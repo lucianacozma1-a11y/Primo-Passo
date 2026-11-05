@@ -1,11 +1,18 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#99F3C969"
-        android:pathData="M54,34a22,22 0,1 1,0 44a22,22 0,1 1,0 -44z" />
-    <path android:fillColor="#00000000" android:strokeColor="#FFCF6A44" android:strokeWidth="4"
-        android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M38,68 L50,68 L50,58 L62,58 L62,48 L72,48" />
-    <path android:fillColor="#FFCF6A44"
-        android:pathData="M72,42 L80,48 L72,54 Z" />
+    <!-- acqua calma -->
+    <path android:fillColor="#00000000" android:strokeColor="#66A9C8DE" android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M30,74 C38,70 46,78 54,74 C62,70 70,78 78,74" />
+    <!-- sassi del sentiero, che salgono piano -->
+    <path android:fillColor="#FFB7D3C8"
+        android:pathData="M30,66 a8,4.5 0 1,0 16,0 a8,4.5 0 1,0 -16,0 z" />
+    <path android:fillColor="#FF86B3A5"
+        android:pathData="M45,55 a8,4.5 0 1,0 16,0 a8,4.5 0 1,0 -16,0 z" />
+    <path android:fillColor="#FF4E8577"
+        android:pathData="M60,44 a8,4.5 0 1,0 16,0 a8,4.5 0 1,0 -16,0 z" />
+    <!-- una foglia -->
+    <path android:fillColor="#FF4E8577"
+        android:pathData="M68,38 C68,30 74,26 80,26 C80,32 76,38 68,38 Z" />
 </vector>

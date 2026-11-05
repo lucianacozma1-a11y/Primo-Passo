@@ -55,21 +55,21 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.cos
 import kotlin.math.sin
 
-// ---------- Palette alba: crema, albicocca, sole, salvia ----------
-val Plum = Color(0xFF2F2A3B)          // testo principale
-val PlumSoft = Color(0xFF6B6577)      // testo secondario
-val PlumFaint = Color(0xFFA39DAD)     // testo tenue
-val Lavender = Color(0xFFEC9A74)      // accento
-val LavenderDeep = Color(0xFFCF6A44)
-val LavenderMist = Color(0xFFF8E7DC)
-val Rose = Color(0xFFF3C969)
-val Peach = Color(0xFFB9D6C3)
-val BgTop = Color(0xFFFFF8F0)
-val BgMid = Color(0xFFFDEEE2)
-val BgBottom = Color(0xFFF4F3E8)
+// ---------- Palette calma: salvia, azzurro nebbia, sabbia ----------
+val Plum = Color(0xFF2C3A3D)          // testo principale
+val PlumSoft = Color(0xFF5E6E70)      // testo secondario
+val PlumFaint = Color(0xFF9AA8A8)     // testo tenue
+val Lavender = Color(0xFF86B3A5)      // accento
+val LavenderDeep = Color(0xFF4E8577)
+val LavenderMist = Color(0xFFE2EEE9)
+val Rose = Color(0xFFA9C8DE)
+val Peach = Color(0xFFE6DAC4)
+val BgTop = Color(0xFFF5F8F6)
+val BgMid = Color(0xFFEAF2EF)
+val BgBottom = Color(0xFFF2EFE7)
 val CardWhite = Color(0xC7FFFFFF)
 val CardBorder = Color(0xE6FFFFFF)
-val Hairline = Color(0x1F2F2A3B)
+val Hairline = Color(0x1F2C3A3D)
 
 val Serif = FontFamily.Serif
 

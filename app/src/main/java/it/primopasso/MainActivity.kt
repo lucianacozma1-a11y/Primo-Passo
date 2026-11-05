@@ -31,6 +31,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
@@ -55,7 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 sealed class Route {
-    data class MicroStart(val pendingId: Long? = null) : Route()
+    data class MicroStart(val pendingId: Long? = null, val step: String? = null) : Route()
+    object Plan : Route()
+    object Checkin : Route()
+    object Thought : Route()
     data class ReadLesson(val id: Int) : Route()
     data class Kit(val id: String) : Route()
     object Profile : Route()
@@ -117,6 +122,9 @@ class MainActivity : ComponentActivity() {
                 "lesson" -> Route.ReadLesson(prefs.nextLesson()?.id ?: 1)
                 "quiz" -> Route.Quiz
                 "profile" -> Route.Profile
+                "plan" -> Route.Plan
+                "checkin" -> Route.Checkin
+                "thought" -> Route.Thought
                 "kit" -> Route.Kit(intent.getStringExtra("kit") ?: "k_ridicolo")
                 else -> null
             }
@@ -133,6 +141,8 @@ private val tabItems = listOf(
     TabItem("Inizia", Icons.Filled.PlayArrow),
     TabItem("Lezioni", Icons.Filled.DateRange),
     TabItem("Kit", Icons.Filled.Build),
+    TabItem("Abitudini", Icons.Filled.CheckCircle),
+    TabItem("Pensieri", Icons.Filled.Face),
     TabItem("Registro", Icons.AutoMirrored.Filled.List)
 )
 
@@ -186,7 +196,7 @@ fun App(prefs: Prefs, launch: LaunchRequest?, onLaunchHandled: () -> Unit, reque
         when (top) {
             is Route.MicroStart -> {
                 val p = top.pendingId?.let { id -> prefs.pending().firstOrNull { it.id == id } }
-                MicroStartFlow(prefs, p, onClose = { pop() })
+                MicroStartFlow(prefs, p, top.step, onClose = { pop() })
             }
             is Route.ReadLesson -> {
                 val l = lessonById(top.id)
@@ -197,7 +207,10 @@ fun App(prefs: Prefs, launch: LaunchRequest?, onLaunchHandled: () -> Unit, reque
                 if (k == null) pop() else KitFlow(k, onClose = { pop() })
             }
             Route.Profile -> ProfileScreen(prefs, onBack = { pop() }, onRedo = { replaceTop(Route.Quiz) })
-            Route.Quiz -> QuizFlow(prefs, showIntro = true, finishLabel = "Vai al mio piano", onFinish = { pop() }, onClose = { pop() })
+            Route.Quiz -> QuizFlow(prefs, showIntro = true, finishLabel = "Vai al mio piano", onFinish = { replaceTop(Route.Plan) }, onClose = { pop() })
+            Route.Plan -> PlanScreen(prefs, buttonLabel = "Fatto", onBack = { pop() }) { pop() }
+            Route.Checkin -> CheckinFlow(prefs, onClose = { pop() })
+            Route.Thought -> ThoughtFlow(prefs, onClose = { pop() }, onStart = { st -> replaceTop(Route.MicroStart(step = st)) })
             Route.Settings -> SettingsScreen(prefs, onBack = { pop() }, onChanged = { version++ }, onRequestNotifications = requestNotifications)
         }
         return
@@ -224,7 +237,9 @@ fun App(prefs: Prefs, launch: LaunchRequest?, onLaunchHandled: () -> Unit, reque
                         onLesson = { push(Route.ReadLesson(it)) },
                         onProfile = { push(Route.Profile) },
                         onOpenTab = { tab = it },
-                        onSettings = { push(Route.Settings) }
+                        onSettings = { push(Route.Settings) },
+                        onPlan = { push(Route.Plan) },
+                        onCheckin = { push(Route.Checkin) }
                     )
                     1 -> StartTab(
                         prefs, version,
@@ -235,6 +250,8 @@ fun App(prefs: Prefs, launch: LaunchRequest?, onLaunchHandled: () -> Unit, reque
                     )
                     2 -> LessonsTab(prefs, version, onLesson = { push(Route.ReadLesson(it)) })
                     3 -> KitTab(prefs, version, onKit = { push(Route.Kit(it)) })
+                    4 -> HabitsTab(prefs, version, onChanged = { version++ })
+                    5 -> ThoughtsTab(prefs, version, onNew = { push(Route.Thought) })
                     else -> LogTab(prefs, version, onStart = { push(Route.MicroStart()) })
                 }
             }
