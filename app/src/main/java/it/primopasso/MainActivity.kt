@@ -96,7 +96,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        parse(intent, Prefs(this))?.let { launch = it }
+        val prefs = Prefs(this)
+        if (intent.getBooleanExtra("skip_onboarding", false)) {
+            prefs.onboardingDone = true
+            prefs.remindersChosen = true
+            if (prefs.blockProfile == null) prefs.blockProfile = "avvio"
+        }
+        parse(intent, prefs)?.let { launch = it }
     }
 
     private fun parse(intent: Intent?, prefs: Prefs): LaunchRequest? {

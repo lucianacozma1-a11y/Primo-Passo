@@ -59,7 +59,9 @@ tap_text "Continua"
 shot 06_ritratto 4
 adb shell input swipe 540 1900 540 400 400
 shot 07_ritratto_giu 2
-adb shell am start -W -n $ACT --ez skip_onboarding true --ei open_tab 0
+tap_text "Continua"
+shot 08a_promemoria 3
+tap_text "Non ora"
 shot 08_oggi 4
 adb shell am start -W -n $ACT --ei open_tab 0 --es open_route start
 shot 09_inizia 3
