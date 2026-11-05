@@ -95,6 +95,63 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
     }
 }
 
+/** Lettore delle lezioni registrate (voce naturale), con musica dolce sotto. */
+class LessonPlayer(private val context: Context) {
+    private var player: android.media.MediaPlayer? = null
+
+    fun hasAudio(id: Int): Boolean = try {
+        context.assets.openFd("audio/lesson_$id.mp3").close()
+        true
+    } catch (_: Exception) {
+        false
+    }
+
+    fun play(id: Int, music: Boolean, onEnd: () -> Unit): Boolean {
+        stop()
+        return try {
+            val fd = context.assets.openFd("audio/lesson_$id.mp3")
+            val mp = android.media.MediaPlayer()
+            mp.setAudioAttributes(
+                android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
+            mp.setDataSource(fd.fileDescriptor, fd.startOffset, fd.length)
+            fd.close()
+            mp.setOnCompletionListener {
+                SoftMusic.stop()
+                onEnd()
+            }
+            mp.prepare()
+            if (music) SoftMusic.start(0.35f)
+            mp.start()
+            player = mp
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun setMusic(on: Boolean) {
+        if (player?.isPlaying == true) {
+            if (on) SoftMusic.start(0.35f) else SoftMusic.stop()
+        }
+    }
+
+    fun stop() {
+        SoftMusic.stop()
+        player?.let {
+            try {
+                it.stop()
+            } catch (_: Exception) {
+            }
+            it.release()
+        }
+        player = null
+    }
+}
+
 // =============================== COMPAGNA DI INIZIO ===============================
 
 fun shareIntention(context: Context, text: String) {

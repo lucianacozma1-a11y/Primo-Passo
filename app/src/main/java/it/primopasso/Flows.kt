@@ -313,9 +313,17 @@ fun LessonScreen(prefs: Prefs, lesson: Lesson, onDone: () -> Unit, onTry: () -> 
     val context = LocalContext.current
     val wasDone = remember { lesson.id in prefs.lessonsDone() }
     val speaker = remember { Speaker(context) }
+    val recorded = remember { LessonPlayer(context) }
+    val hasRecording = remember { recorded.hasAudio(lesson.id) }
+    var music by remember { mutableStateOf(prefs.musicOn) }
     var playing by remember { mutableStateOf(false) }
     var noVoice by remember { mutableStateOf(false) }
-    DisposableEffect(Unit) { onDispose { speaker.shutdown() } }
+    DisposableEffect(Unit) {
+        onDispose {
+            recorded.stop()
+            speaker.shutdown()
+        }
+    }
     PageColumn(onBack = onDone) {
         Overline("Modulo ${lesson.module} · ${moduleById(lesson.module)?.title ?: ""}")
         Spacer(Modifier.height(4.dp))
@@ -323,29 +331,50 @@ fun LessonScreen(prefs: Prefs, lesson: Lesson, onDone: () -> Unit, onTry: () -> 
         Spacer(Modifier.height(8.dp))
         Display(lesson.title, 30)
         Spacer(Modifier.height(14.dp))
-        Row(
-            Modifier
-                .clip(RoundedCornerShape(50))
-                .background(if (playing) LavenderDeep else lerpColor(Color.White, Lavender, 0.22f))
-                .clickable {
-                    if (playing) {
-                        speaker.stop()
-                        playing = false
-                    } else {
-                        val ok = speaker.speak(
-                            listOf("Lezione ${lesson.id}. ${lesson.title}.") + lesson.body.split("\n\n") +
-                                listOf("Il concetto chiave. ${lesson.key}", "Per oggi. ${lesson.tryToday}")
-                        ) { playing = false }
-                        playing = ok
-                        noVoice = !ok || !speaker.italian
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(if (playing) LavenderDeep else lerpColor(Color.White, Lavender, 0.22f))
+                    .clickable {
+                        if (playing) {
+                            recorded.stop()
+                            speaker.stop()
+                            playing = false
+                        } else if (hasRecording) {
+                            playing = recorded.play(lesson.id, music) { playing = false }
+                        } else {
+                            val ok = speaker.speak(
+                                listOf("Lezione ${lesson.id}. ${lesson.title}.") + lesson.body.split("\n\n") +
+                                    listOf("Il concetto chiave. ${lesson.key}", "Per oggi. ${lesson.tryToday}")
+                            ) { playing = false }
+                            playing = ok
+                            noVoice = !ok || !speaker.italian
+                        }
                     }
-                }
-                .padding(horizontal = 18.dp, vertical = 11.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(if (playing) "■" else "▶", color = if (playing) Color.White else LavenderDeep, fontSize = 14.sp)
-            Spacer(Modifier.width(10.dp))
-            Text(if (playing) "Ferma l'ascolto" else "Ascolta la lezione", color = if (playing) Color.White else LavenderDeep, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    .padding(horizontal = 18.dp, vertical = 11.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(if (playing) "■" else "▶", color = if (playing) Color.White else LavenderDeep, fontSize = 14.sp)
+                Spacer(Modifier.width(10.dp))
+                Text(if (playing) "Ferma l'ascolto" else "Ascolta la lezione", color = if (playing) Color.White else LavenderDeep, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            }
+            if (hasRecording) {
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    if (music) "♪ Musica sì" else "♪ Musica no",
+                    color = if (music) LavenderDeep else PlumFaint, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(if (music) LavenderMist else Color(0x80FFFFFF))
+                        .clickable {
+                            music = !music
+                            prefs.musicOn = music
+                            recorded.setMusic(music)
+                        }
+                        .padding(horizontal = 12.dp, vertical = 9.dp)
+                )
+            }
         }
         if (noVoice) {
             Spacer(Modifier.height(6.dp))

@@ -258,6 +258,11 @@ class Prefs(context: Context) {
         sp.edit().putString("thoughts", a.toString()).apply()
     }
 
+    // ---- musica sotto le lezioni ----
+    var musicOn: Boolean
+        get() = sp.getBoolean("music_on", true)
+        set(v) = sp.edit().putBoolean("music_on", v).apply()
+
     // ---- promemoria ----
     var morningOn: Boolean
         get() = sp.getBoolean("rem_morning", true)
