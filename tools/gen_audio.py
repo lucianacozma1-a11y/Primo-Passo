@@ -2,6 +2,9 @@
 import asyncio, json, os, re, subprocess, sys, math, wave, struct, random
 
 import edge_tts
+import imageio_ffmpeg
+
+FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 
 VOICE = os.environ.get("VOICE", "it-IT-IsabellaNeural")
 RATE = os.environ.get("RATE", "-8%")
@@ -25,7 +28,13 @@ assert len(lessons) >= 20
 
 
 def sh(*args):
-    subprocess.run(args, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    args = list(args)
+    if args[0] == "ffmpeg":
+        args[0] = FFMPEG
+    r = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    if r.returncode != 0:
+        print(r.stderr.decode()[-800:])
+        raise RuntimeError("ffmpeg fallito")
 
 
 async def tts(text, path, voice=VOICE):

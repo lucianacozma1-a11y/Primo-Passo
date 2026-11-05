@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Installa strumenti
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg && pip install edge-tts
+        run: pip install edge-tts imageio-ffmpeg
       - name: Genera
         run: python tools/gen_audio.py
       - name: Salva gli audio nel branch
